@@ -1,3 +1,6 @@
+import os
+
+import uvicorn
 from fastapi import FastAPI
 
 from app.api.routes import router
@@ -34,3 +37,7 @@ def shutdown_event():
 def health():
     settings = get_runtime_settings()
     return {"status": "ok", "mode": settings.get("OKX_MODE"), "dry_run": settings.get("DRY_RUN")}
+
+
+if __name__ == "__main__":
+    uvicorn.run("app.main:app", host="0.0.0.0", port=int(os.getenv("PORT", "10000")))
