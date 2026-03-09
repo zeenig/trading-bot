@@ -2,6 +2,7 @@ import os
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router
 from app.core.runtime_settings import get_runtime_settings
@@ -11,6 +12,14 @@ from app.utils.logger import get_logger
 app = FastAPI(title="AI Trading Bot")
 app.include_router(router)
 logger = get_logger("main")
+cors_origins = [item.strip() for item in os.getenv("CORS_ORIGINS", "*").split(",") if item.strip()]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("startup")

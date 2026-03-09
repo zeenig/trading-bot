@@ -75,6 +75,25 @@ class SupabaseDB:
                 logger.warning("Supabase select failed for table=%s: %s", table, exc)
             return []
 
+    def upsert(self, table, data, on_conflict="key"):
+        if not self.enabled:
+            return None
+        try:
+            headers = self._headers().copy()
+            headers["Prefer"] = "resolution=merge-duplicates,return=representation"
+            response = requests.post(
+                f"{self.url}/rest/v1/{table}",
+                headers=headers,
+                params={"on_conflict": on_conflict},
+                json=data,
+                timeout=10,
+            )
+            response.raise_for_status()
+            return response.json()
+        except Exception as exc:
+            logger.warning("Supabase upsert failed for table=%s: %s", table, exc)
+            return None
+
 
 db = SupabaseDB(config.SUPABASE_URL, config.SUPABASE_SERVICE_ROLE_KEY)
 
@@ -194,3 +213,8 @@ def fetch_active_symbols():
     return [{"symbol": s, "market_type": "spot"} for s in spot_symbols] + [
         {"symbol": s, "market_type": "swap"} for s in swap_symbols
     ]
+
+
+def upsert_setting(key, value):
+    payload = {"key": key, "value": value, "updated_at": _utc_now()}
+    db.upsert("bot_settings", payload, on_conflict="key")

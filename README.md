@@ -34,6 +34,35 @@ uvicorn app.main:app --reload
 python scripts/run_cycle.py
 ```
 
+Frontend (Next.js on Vercel)
+----------------------------
+
+Frontend lives in `trading-bot-frontend/`.
+
+1. Install and run locally:
+
+```bash
+cd trading-bot-frontend
+npm install
+npm run dev
+```
+
+2. Set environment variable in Vercel:
+
+- `NEXT_PUBLIC_API_BASE_URL=https://<your-render-backend>.onrender.com`
+
+3. In Vercel project settings:
+
+- Root Directory: `trading-bot-frontend`
+- Build Command: `npm run build`
+- Output Directory: `.next`
+
+Frontend routes:
+
+- `/login` and `/register` (session-based auth UI)
+- `/dashboard` (live bot metrics/trades/signals)
+- `/settings` (edit and save `RISK_CONFIG` + `STRATEGY_CONFIG`)
+
 Environment Variables
 ---------------------
 
@@ -43,6 +72,7 @@ Only minimal bootstrap config is in environment:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `LOG_LEVEL` (optional)
 - `SETTINGS_CACHE_TTL_SECONDS` (optional, default `20`)
+- `CORS_ORIGINS` (optional, comma-separated, default `*`)
 
 All trading/exchange/AI/risk values are read from DB table `bot_settings`.
 Active symbols are read from `bot_symbols` using `market_type` (`spot`/`swap`) and `is_active`.

@@ -1,0 +1,12 @@
+{
+  "folders": [
+    { "path": "C:\\trading-bot" },
+    { "path": "C:\\trading-bot-frontend" }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.next": true,
+      "**/node_modules": true
+    }
+  }
+}

@@ -1,10 +1,20 @@
+import json
+
 from fastapi import APIRouter
+from pydantic import BaseModel, Field
 
 from app.core.runtime_settings import get_runtime_settings
 from app.execution.engine import get_engine
 from app.storage import db
 
 router = APIRouter()
+
+
+class ConfigUpdatePayload(BaseModel):
+    mode: str = Field(default="testnet")
+    dry_run: bool = Field(default=True)
+    riskConfig: dict = Field(default_factory=dict)
+    strategyConfig: dict = Field(default_factory=dict)
 
 
 @router.get("/status")
@@ -30,6 +40,15 @@ def bot_config():
         "mode": settings.get("OKX_MODE"),
         "dry_run": settings.get("DRY_RUN"),
     }
+
+
+@router.post("/config")
+def update_config(payload: ConfigUpdatePayload):
+    db.upsert_setting("OKX_MODE", str(payload.mode).lower())
+    db.upsert_setting("DRY_RUN", "true" if payload.dry_run else "false")
+    db.upsert_setting("RISK_CONFIG", json.dumps(payload.riskConfig))
+    db.upsert_setting("STRATEGY_CONFIG", json.dumps(payload.strategyConfig))
+    return {"ok": True}
 
 
 @router.post("/cycle/run")
