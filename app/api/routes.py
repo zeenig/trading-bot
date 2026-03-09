@@ -1,8 +1,9 @@
 import json
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
+from app.core.auth import create_access_token, require_auth
 from app.core.runtime_settings import get_runtime_settings
 from app.execution.engine import get_engine
 from app.storage import db
@@ -15,6 +16,11 @@ class ConfigUpdatePayload(BaseModel):
     dry_run: bool = Field(default=True)
     riskConfig: dict = Field(default_factory=dict)
     strategyConfig: dict = Field(default_factory=dict)
+
+
+class LoginPayload(BaseModel):
+    email: str
+    password: str
 
 
 @router.get("/status")
@@ -32,7 +38,7 @@ def status():
 
 
 @router.get("/config")
-def bot_config():
+def bot_config(_auth=Depends(require_auth)):
     settings = get_runtime_settings()
     return {
         "riskConfig": settings.get("RISK_CONFIG", {}),
@@ -43,7 +49,7 @@ def bot_config():
 
 
 @router.post("/config")
-def update_config(payload: ConfigUpdatePayload):
+def update_config(payload: ConfigUpdatePayload, _auth=Depends(require_auth)):
     db.upsert_setting("OKX_MODE", str(payload.mode).lower())
     db.upsert_setting("DRY_RUN", "true" if payload.dry_run else "false")
     db.upsert_setting("RISK_CONFIG", json.dumps(payload.riskConfig))
@@ -52,9 +58,26 @@ def update_config(payload: ConfigUpdatePayload):
 
 
 @router.post("/cycle/run")
-def run_cycle():
+def run_cycle(_auth=Depends(require_auth)):
     engine = get_engine()
     return engine.run_cycle()
+
+
+@router.post("/auth/login")
+def login(payload: LoginPayload):
+    settings = get_runtime_settings()
+    if not settings.get("AUTH_ENABLED", True):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Authentication disabled")
+
+    if payload.email != settings.get("AUTH_EMAIL") or payload.password != settings.get("AUTH_PASSWORD"):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+    token = create_access_token(
+        subject=payload.email,
+        secret=settings.get("AUTH_SECRET", "change-me"),
+        expires_in_seconds=int(settings.get("AUTH_TOKEN_TTL_MINUTES", 720)) * 60,
+    )
+    return {"access_token": token, "token_type": "bearer"}
 
 
 @router.get("/positions")

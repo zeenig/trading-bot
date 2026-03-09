@@ -77,6 +77,7 @@ Only minimal bootstrap config is in environment:
 All trading/exchange/AI/risk values are read from DB table `bot_settings`.
 Active symbols are read from `bot_symbols` using `market_type` (`spot`/`swap`) and `is_active`.
 OKX credentials are mode-aware: set both `OKX_TESTNET_*` and `OKX_LIVE_*`; bot picks one based on `OKX_MODE`.
+Auth settings are also read from `bot_settings`: `AUTH_ENABLED`, `AUTH_EMAIL`, `AUTH_PASSWORD`, `AUTH_SECRET`, `AUTH_TOKEN_TTL_MINUTES`.
 
 Supabase setup:
 
@@ -120,6 +121,7 @@ API Endpoints
 - `GET /health`
 - `GET /status`
 - `GET /config`
+- `POST /auth/login`
 - `POST /cycle/run`
 - `GET /signals`
 - `GET /trades`

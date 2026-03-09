@@ -57,6 +57,11 @@ _DEFAULTS = {
     "GEMINI_API_KEY": "",
     "GEMINI_MODEL": "gemini-1.5-flash",
     "AUTO_START_CYCLE": False,
+    "AUTH_ENABLED": True,
+    "AUTH_EMAIL": "admin@local",
+    "AUTH_PASSWORD": "admin123",
+    "AUTH_SECRET": "change-me",
+    "AUTH_TOKEN_TTL_MINUTES": 720,
 }
 
 
@@ -194,6 +199,11 @@ def _normalize(values):
         "GEMINI_API_KEY": str(merged["GEMINI_API_KEY"] or ""),
         "GEMINI_MODEL": str(merged["GEMINI_MODEL"] or "gemini-1.5-flash"),
         "AUTO_START_CYCLE": _to_bool(merged["AUTO_START_CYCLE"], False),
+        "AUTH_ENABLED": _to_bool(merged["AUTH_ENABLED"], True),
+        "AUTH_EMAIL": str(merged["AUTH_EMAIL"] or "admin@local"),
+        "AUTH_PASSWORD": str(merged["AUTH_PASSWORD"] or "admin123"),
+        "AUTH_SECRET": str(merged["AUTH_SECRET"] or "change-me"),
+        "AUTH_TOKEN_TTL_MINUTES": _to_int(merged["AUTH_TOKEN_TTL_MINUTES"], 720),
         "ENABLE_AI_CONFIRMATION": strategy_config["aiEnabled"],
         "AI_MIN_CONFIDENCE": strategy_config["minConfidence"] / 100.0,
         "RISK_CONFIG": risk_config,
